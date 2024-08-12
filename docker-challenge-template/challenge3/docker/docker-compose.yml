@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Nginx Service
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - node-service
+
+  # Node.js Service
+  node-service:
+    build:
+      context: ./api
+    environment:
+      # Root Credentials
+      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+
+      # User Credentials
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # Database Information
+      - DB_DATABASE=${DB_DATABASE}
+
+      # Host Configuration
+      - DB_HOST=${DB_HOST}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  # MySQL Database Service
+  db:
+    image: mysql:5.7
+    environment:
+      # Root Credentials
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+
+      # User Credentials
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+      # Database Information
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+
+      # Host Configuration
+      - MYSQL_HOST=${MYSQL_HOST}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d

@@ -1,0 +1,42 @@
+# Define the Docker Compose version
+version: '3.8'
+
+services:
+  # Nginx service
+  nginx:
+    build:
+      context: ./nginx  # Path to Nginx Dockerfile
+    ports:
+      - "8080:80"  # Map port 80 in the container to port 8080 on the host
+    depends_on:
+      - node-service  # Ensure that the Node.js service is up before Nginx
+
+  # Node.js application service
+  node-service:
+    build:
+      context: ./api  # Path to Node.js Dockerfile
+    depends_on:
+      - db  # Ensure that the database service is up before Node.js
+    environment:
+      # Configuration for connecting to the database
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+
+  # Database service
+  db:
+    build:
+      context: ./db  # Path to the database Dockerfile
+    ports:
+      - "3307:3306"  # Map port 3306 in the container to port 3307 on the host
+    environment:
+      # MySQL/MariaDB database configuration
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      # Initialize the database with SQL scripts
+      - ./db/init:/docker-entrypoint-initdb.d
